@@ -29,14 +29,11 @@ jobs:
           java-version: '17.0.8'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download Source
+      - name: Download Source and build Native Image
         run: |
           git clone -b master https://github.com/apache/shardingsphere.git
           cd ./shardingsphere/
           git reset --hard fd574b8148331d9d2d23a2843ef83fef07323018
-      - name: Collect GraalVM Reachability Metadata in Standard form
-        run: |
           ./mvnw -PgenerateStandardMetadata -DskipNativeTests -B -T1C clean test
-      - name: Build Native Image
-        run: |
           ./mvnw -am -pl distribution/proxy-native -B -T1C -Prelease.native -DskipTests clean package
+          
