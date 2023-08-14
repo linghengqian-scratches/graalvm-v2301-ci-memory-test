@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/ci.yml'
+      - '**/pom.xml'
+      - '**/src/main/**'
+      - '**/src/test/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/ci.yml'
+      - '**/pom.xml'
+      - '**/src/main/**'
+      - '**/src/test/**'
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
+
+jobs:
+  test-ci:
+    name: Test CI - JDK 17 on ubuntu-latest
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v3
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17.0.8'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'maven'
+      - name: Download Source
+        run: |
+          git clone -b master git@github.com:apache/shardingsphere.git
+          cd ./shardingsphere/
+          git reset --hard fd574b8148331d9d2d23a2843ef83fef07323018
+      - name: Collect GraalVM Reachability Metadata in Standard form
+        run: |
+          ./mvnw -PgenerateStandardMetadata -DskipNativeTests -B -T1C clean test
+      - name: Build Native Image
+        run: |
+          ./mvnw -am -pl distribution/proxy-native -B -T1C -Prelease.native -DskipTests clean package
