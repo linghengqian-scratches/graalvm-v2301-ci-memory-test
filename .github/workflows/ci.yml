@@ -29,7 +29,6 @@ jobs:
           java-version: '17.0.8'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: 'maven'
       - name: Download Source
         run: |
           git clone -b master git@github.com:apache/shardingsphere.git
