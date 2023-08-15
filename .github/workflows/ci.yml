@@ -34,5 +34,6 @@ jobs:
           git clone -b master https://github.com/apache/shardingsphere.git
           cd ./shardingsphere/
           git reset --hard fd574b8148331d9d2d23a2843ef83fef07323018
+          ./mvnw -PgenerateStandardMetadata -DskipNativeTests -B -T1C clean test
           ./mvnw -am -pl distribution/proxy-native -B -T1C -Prelease.native -DskipTests clean package
           
